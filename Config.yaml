@@ -37,38 +37,38 @@ dns:
     "+.vk.com": "77.88.8.8"
     "+.ya.ru": "77.88.8.8"
 
-# ================= 1. MAIN VLESS (ДВА ВАРИАНТА ПОДКЛЮЧЕНИЯ) =================
+# ================= 1. MAIN VLESS =================
 proxies:
-  # 1.1 Прямое подключение
+  # 1.1 Прямое подключение (Здесь vision остается, т.к. соединение прямое)
   - name: "Main-VLESS"
     type: vless
-    server: -
+    server: Ваш_IP # Замените на свой
     port: 443
-    uuid: -
+    uuid: Ваш_UUID # Замените на свой
     network: tcp
     tls: true
     udp: true
     flow: xtls-rprx-vision
     servername: vk.com
     reality-opts:
-      public-key: -
-      short-id: -
+      public-key: Ваш_Key # Замените на свой
+      short-id: Ваш_ID    # Замените на свой
     client-fingerprint: chrome
 
-  # 1.2 Подключение через цепочку
+  # 1.2 Подключение через цепочку (БЕЗ VISION!)
   - name: "Main-VLESS-Chained"
     type: vless
-    server: -
+    server: Ваш_IP # Замените на свой
     port: 443
-    uuid: -
+    uuid: Ваш_UUID # Замените на свой
     network: tcp
     tls: true
     udp: true
-    flow: xtls-rprx-vision
+    # ВНИМАНИЕ: Строка flow: xtls-rprx-vision удалена! При использовании dialer-proxy она ломает туннель.
     servername: vk.com
     reality-opts:
-      public-key: -
-      short-id: -
+      public-key: Ваш_Key # Замените на свой
+      short-id: Ваш_ID    # Замените на свой
     client-fingerprint: chrome
     dialer-proxy: "Best-Whitelist-Proxy"
 
@@ -80,26 +80,27 @@ proxy-providers:
     interval: 3600 
     health-check:
       enable: true
-      url: http://cp.cloudflare.com/generate_204
+      # Меняем Cloudflare на нейтральный детектор портала Firefox (никогда не блокируется и возвращает четкий статус)
+      url: "http://detectportal.firefox.com/success.txt"
       interval: 300
 
-# ================= 3. ЛОГИКА =================
+# ================= 3. ЛОГИКА ГРУПП =================
 proxy-groups:
   - name: "Best-Whitelist-Proxy"
     type: url-test
     use:
       - github-whitelist-subs
-    url: http://cp.cloudflare.com/generate_204
+    url: "http://detectportal.firefox.com/success.txt"
     interval: 300 
-    tolerance: 50 
+    tolerance: 150 # Немного увеличил толерантность, цепочки создают пинг, чтобы не прыгал каждую секунду
 
   - name: "Smart-Routing"
     type: fallback
     proxies:
       - "Main-VLESS"          
       - "Main-VLESS-Chained"  
-    url: http://cp.cloudflare.com/generate_204
-    interval: 10 
+    url: "http://detectportal.firefox.com/success.txt"
+    interval: 15 
 
 # ================= 4. БЛЭКЛИСТЫ =================
 rule-providers:
@@ -116,7 +117,11 @@ rules:
   - GEOIP,lan,DIRECT,no-resolve
   - GEOSITE,private,DIRECT
 
-  # 2. ФИКС ДЛЯ GEMINI И GOOGLE (Обязательно через VPN)
+  # 2. ОЧЕНЬ ВАЖНО: GitHub должен идти через прокси, иначе при белых списках ваши подписки не обновятся!
+  - DOMAIN-SUFFIX,githubusercontent.com,Smart-Routing
+  - DOMAIN-SUFFIX,github.com,Smart-Routing
+
+  # 3. ФИКС ДЛЯ GEMINI И GOOGLE (Обязательно через VPN)
   - DOMAIN-KEYWORD,google,Smart-Routing
   - DOMAIN-SUFFIX,googleapis.com,Smart-Routing
   - DOMAIN-SUFFIX,gstatic.com,Smart-Routing
@@ -124,8 +129,8 @@ rules:
   - DOMAIN-SUFFIX,openai.com,Smart-Routing
   - DOMAIN-SUFFIX,ai.com,Smart-Routing
 
-  # 3. Проверка по блэклисту
+  # 4. Проверка по блэклисту
   - RULE-SET,sanmai-blacklist,Smart-Routing
 
-  # 4. Всё остальное напрямую (включая весь рунет)
+  # 5. Всё остальное напрямую (включая весь рунет)
   - MATCH,DIRECT
