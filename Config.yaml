@@ -91,7 +91,7 @@ rule-providers:
     type: http
     behavior: classical
     format: yaml   
-    url: "https://raw.githubusercontent.com/Oradep/UltimateProxy/refs/heads/main/blacklist.txt"
+    url: "https://raw.githubusercontent.com/Oradep/CopperProxy/refs/heads/main/blacklist_mihomo.yaml"
     interval: 86400 
 
 # ================= 5. МАРШРУТИЗАЦИЯ =================
