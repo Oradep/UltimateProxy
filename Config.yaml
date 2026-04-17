@@ -1,0 +1,107 @@
+# ================= ОСНОВНЫЕ НАСТРОЙКИ =================
+port: 7890
+allow-lan: false
+mode: rule
+log-level: info
+ipv6: false
+
+# ================= СНИФФЕР И DNS (КРИТИЧНО) =================
+# Вытаскивает домены из трафика для проверки по блэклисту
+sniffer:
+  enable: true
+  parse-pure-ip: true
+  sniff:
+    TLS:
+      ports:[443, 8443]
+    HTTP:
+      ports:[80, 8080-8880]
+
+# Защита от утечек и подмены DNS российскими провайдерами
+dns:
+  enable: true
+  listen: 0.0.0.0:1053
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - '*'
+    - '+.lan'
+  nameserver:
+    - 77.88.8.8 # Яндекс DNS (для быстрого резолва рунета напрямую)
+    - 1.1.1.1   # Cloudflare
+
+# ================= 1. MAIN VLESS (ВСТАВИТЬ СВОЙ КОНФИГ, ОСТАВИТЬ name) =================
+proxies:
+  - name: "Main-VLESS"
+    type: vless
+    server: -
+    port: 443
+    uuid: -
+    network: tcp
+    tls: true
+    udp: true
+    flow: xtls-rprx-vision
+    servername: vk.com
+    reality-opts:
+      public-key: -
+      short-id: -
+    client-fingerprint: chrome
+
+
+# ================= 2. ПОДПИСКИ (БЕЛЫЕ СЕРВЕРА) =================
+proxy-providers:
+  github-whitelist-subs:
+    type: http
+    url: "https://raw.githubusercontent.com/Oradep/UltimateProxy/refs/heads/main/vless_wl.txt"
+    interval: 3600 
+    health-check:
+      enable: true
+      url: http://cp.cloudflare.com/generate_204
+      interval: 300
+
+# ================= 3. ЛОГИКА И ЦЕПОЧКИ =================
+proxy-groups:
+  - name: "Best-Whitelist-Proxy"
+    type: url-test
+    use:
+      - github-whitelist-subs
+    url: http://cp.cloudflare.com/generate_204
+    interval: 300 
+    tolerance: 50 
+
+  - name: "Chain-to-Main"
+    type: relay
+    proxies:
+      - "Best-Whitelist-Proxy"
+      - "Main-VLESS"
+
+  - name: "Smart-Routing"
+    type: fallback
+    proxies:
+      - "Main-VLESS" 
+      - "Chain-to-Main" 
+    url: http://cp.cloudflare.com/generate_204
+    # Уменьшил интервал до 60, чтобы при блокировке Финляндии 
+    # он быстрее переключался на цепочку (не ждал 2 минуты)
+    interval: 60 
+
+# ================= 4. БЛЭКЛИСТЫ =================
+rule-providers:
+  sanmai-blacklist:
+    type: http
+    behavior: classical
+    format: yaml   
+    url: "https://raw.githubusercontent.com/Oradep/UltimateProxy/refs/heads/main/blacklist.txt"
+    interval: 86400 
+
+# ================= 5. МАРШРУТИЗАЦИЯ =================
+rules:
+  # 1. Запрещаем приложению гонять локальный трафик в туннель
+  - GEOIP,lan,DIRECT,no-resolve
+  - GEOSITE,private,DIRECT
+  
+  # 2. Если сайт в блэклисте -> пускаем через умный рутинг (Финка или Цепочка)
+  - RULE-SET,sanmai-blacklist,Smart-Routing
+  
+  # 3. Всё остальное (включая весь рунет) -> идет НАПРЯМУЮ мимо ВПН
+  - MATCH,DIRECT
