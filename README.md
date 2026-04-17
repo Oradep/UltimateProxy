@@ -8,6 +8,6 @@
 
 # src: 
 
- - blacklist - https://github.com/sanmai/blacklist/blob/master/blacklist.txt 
+ - blacklist - https://github.com/1andrevich/Re-filter-lists/
 
  - vless wl - https://github.com/zieng2/wl/tree/main (I removed configs that doesnt work for me)

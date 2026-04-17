@@ -5,7 +5,7 @@ mode: rule
 log-level: info
 ipv6: false
 
-# ================= СНИФФЕР И DNS (КРИТИЧНО) =================
+# ================= СНИФФЕР И DNS =================
 # Вытаскивает домены из трафика для проверки по блэклисту
 sniffer:
   enable: true
@@ -16,7 +16,6 @@ sniffer:
     HTTP:
       ports: [80, 8080-8880]
 
-# Защита от утечек и подмены DNS российскими провайдерами
 dns:
   enable: true
   listen: 0.0.0.0:1053
@@ -26,9 +25,22 @@ dns:
   fake-ip-filter:
     - '+.lan'
     - '+.local'
+  # Дефолтный DNS для резолва самих IP твоих прокси-серверов (чтобы подключаться к ним быстро)
+  default-nameserver:
+    - 77.88.8.8
+  # Основной зашифрованный DNS, который не подменит провайдер (для проверки блэклиста)
   nameserver:
-    - 77.88.8.8 # Яндекс для быстрых российских сайтов
-    - https://1.1.1.1/dns-query # Cloudflare DoH (зашифрованный, чтобы провайдер РФ не перехватил)
+    - https://1.1.1.1/dns-query
+    - https://8.8.8.8/dns-query
+
+
+nameserver-policy:
+    "+.ru": "77.88.8.8"
+    "+.su": "77.88.8.8"
+    "+.рф": "77.88.8.8"
+    "+.yandex.ru": "77.88.8.8"
+    "+.vk.com": "77.88.8.8"
+    "+.ya.ru": "77.88.8.8"
 
 
 # ================= 1. MAIN VLESS (ДВА ВАРИАНТА ПОДКЛЮЧЕНИЯ) =================
@@ -76,7 +88,7 @@ proxy-providers:
     interval: 3600 
     health-check:
       enable: true
-      url: http://cp.cloudflare.com/generate_204
+      url: http://www.gstatic.com/generate_204
       interval: 300
 
 
@@ -87,7 +99,7 @@ proxy-groups:
     type: url-test
     use:
       - github-whitelist-subs
-    url: http://cp.cloudflare.com/generate_204
+    url: http://www.gstatic.com/generate_204
     interval: 300 
     tolerance: 50 
 
@@ -95,11 +107,10 @@ proxy-groups:
   - name: "Smart-Routing"
     type: fallback
     proxies:
-      - "Main-VLESS"          # Сначала пробует напрямую
-      - "Main-VLESS-Chained"  # Если финка в блоке - включает цепочку
-    url: http://cp.cloudflare.com/generate_204
-    interval: 60 
-
+      - "Main-VLESS"          
+      - "Main-VLESS-Chained"  
+    url: http://www.gstatic.com/generate_204
+    interval: 15 
 
 # ================= 4. БЛЭКЛИСТЫ =================
 rule-providers:
@@ -113,12 +124,12 @@ rule-providers:
 
 # ================= 5. МАРШРУТИЗАЦИЯ =================
 rules:
-  # 1. Запрещаем приложению гонять локальный трафик в туннель
+  # 1. Локалка идет напрямую мимо всего
   - GEOIP,lan,DIRECT,no-resolve
   - GEOSITE,private,DIRECT
-  
-  # 2. Если сайт в блэклисте -> пускаем через умный рутинг (Финка напрямую ИЛИ Финка через Цепочку)
+
+  # 2. Проверка по блэклисту. Если совпало -> в умный рутинг
   - RULE-SET,sanmai-blacklist,Smart-Routing
-  
-  # 3. Всё остальное (включая весь рунет) -> идет НАПРЯМУЮ мимо ВПН
+
+  # 3. Всё остальное напрямую (включая весь рунет)
   - MATCH,DIRECT
