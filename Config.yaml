@@ -12,9 +12,9 @@ sniffer:
   parse-pure-ip: true
   sniff:
     TLS:
-      ports:[443, 8443]
+      ports: [443, 8443]
     HTTP:
-      ports:[80, 8080-8880]
+      ports: [80, 8080-8880]
 
 # Защита от утечек и подмены DNS российскими провайдерами
 dns:
