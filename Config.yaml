@@ -135,6 +135,7 @@ rule-providers:
     url: *whitelist_url  # <--- Ссылка берется из переменных
     interval: 86400 
 
+
 # ================= 4. МАРШРУТИЗАЦИЯ =================
 rules:
   # 1. Локалка и роутер - всегда напрямую
@@ -144,11 +145,33 @@ rules:
   # 2. РУССКИЕ САЙТЫ (Белый список) - ВСЕГДА НАПРЯМУЮ
   - RULE-SET,sanmai-whitelist,DIRECT
 
-  # 3. Запрет UDP/QUIC (Остается здесь, так как действие REJECT, а не VPN)
+  # 3. Служебные домены (чтобы VPN не зависал)
+  - DOMAIN-KEYWORD,github,Smart-Routing
+  - DOMAIN-KEYWORD,ipwho,Smart-Routing
+  - DOMAIN-KEYWORD,ipinfo,Smart-Routing
+  - DOMAIN-KEYWORD,ipapi,Smart-Routing
+
+  # 4. Запрет UDP/QUIC (лечит картинки в инсте и ютубе)
   - AND,((NETWORK,UDP),(DEST-PORT,443),(GEOSITE,youtube,google,meta,instagram)),REJECT
   
-  # 4. ЗАБЛОКИРОВАННЫЕ САЙТЫ, СОЦСЕТИ, ИИ И СЛУЖЕБНЫЕ ДОМЕНЫ (Всё перенесено в черный список)
+  # 5. МЕССЕНДЖЕРЫ И СОЦСЕТИ (Через базы GEOSITE / GEOIP)
+  - GEOSITE,discord,Smart-Routing
+  - GEOSITE,telegram,Smart-Routing
+  - GEOSITE,meta,Smart-Routing
+  - GEOSITE,instagram,Smart-Routing
+  - GEOSITE,twitter,Smart-Routing
+  - GEOSITE,tiktok,Smart-Routing
+  
+  # Ловим прямые IP (голосовые звонки Discord и Telegram)
+  - GEOIP,telegram,Smart-Routing
+  - GEOIP,meta,Smart-Routing
+  - GEOIP,twitter,Smart-Routing
+  - IP-ASN,396982,Smart-Routing # Google Cloud (Voice Discord)
+  - IP-ASN,7018,Smart-Routing   # AT&T (Voice Discord)
+  - DOMAIN-SUFFIX,nekogram.app,Smart-Routing # Для вашего стороннего клиента ТГ
+
+  # 6. БОЛЬШОЙ ЧЕРНЫЙ СПИСОК (Берется из вашего внешнего файла на Github)
   - RULE-SET,sanmai-blacklist,Smart-Routing
 
-  # 5. ВСЁ ОСТАЛЬНОЕ -> ИДЁТ В АВТО-ПЕРЕКЛЮЧАТЕЛЬ
+  # 7. ВСЁ ОСТАЛЬНОЕ -> ИДЁТ В АВТО-ПЕРЕКЛЮЧАТЕЛЬ
   - MATCH,Auto-State
