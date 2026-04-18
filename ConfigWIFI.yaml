@@ -1,3 +1,6 @@
+#!name=📶 WiFi (Черный список)
+#!desc=Маршрутизация: Все сайты напрямую, кроме заблокированных
+
 # ================= ПЕРЕМЕННЫЕ =================
 x-variables:
   personal_sub: &personal_sub "https://..." # <<< ВАША ССЫЛКА НА СВОЙ СЕРВЕР
@@ -34,7 +37,7 @@ dns:
     "+.ru": "77.88.8.8"
     "+.рф": "77.88.8.8"
 
-# ================= ПРОВАЙДЕРЫ =================
+# ================= ПРОВАЙДЕРЫ ПРОКСИ =================
 proxy-providers:
   main-personal-sub:
     type: http
@@ -46,7 +49,7 @@ proxy-providers:
       expected-status: 204
       interval: 30
 
-# ================= ГРУППЫ =================
+# ================= ГРУППЫ ПРОКСИ =================
 proxy-groups:
   - name: "🛡️ CopperProxy (Основной)"
     type: fallback
@@ -57,7 +60,7 @@ proxy-groups:
     expected-status: 204
     interval: 30
 
-# ================= СПИСКИ (ЧЕРНЫЕ) =================
+# ================= ПРАВИЛА (ЧЕРНЫЙ СПИСОК) =================
 rule-providers:
   personal-blacklist:
     type: http
@@ -66,7 +69,7 @@ rule-providers:
     url: *blacklist_url
     interval: 86400 
 
-  # Бинарная база (Не тормозит телефон)
+  # Бинарная база РКН (Не тормозит телефон)
   rkn-ip-blocked:
     type: http
     behavior: ipcidr
@@ -79,13 +82,13 @@ rules:
   - GEOIP,lan,DIRECT,no-resolve
   - GEOSITE,private,DIRECT
 
-  # 1. Запрет UDP для YouTube/Instagram
+  # 1. Запрет UDP для YouTube/Meta (чтобы не тормозило из-за QUIC)
   - AND,((NETWORK,UDP),(DST-PORT,443),(GEOSITE,youtube,google,meta,instagram)),REJECT
 
   # 2. Служебные домены
   - DOMAIN-KEYWORD,github,🛡️ CopperProxy (Основной)
 
-  # 3. Мессенджеры и звонки (Discord, Telegram, Twitter)
+  # 3. Мессенджеры и соцсети
   - GEOSITE,discord,🛡️ CopperProxy (Основной)
   - GEOSITE,telegram,🛡️ CopperProxy (Основной)
   - GEOSITE,twitter,🛡️ CopperProxy (Основной)
@@ -95,8 +98,8 @@ rules:
   # 4. ВАШ ЛИЧНЫЙ ЧЕРНЫЙ СПИСОК
   - RULE-SET,personal-blacklist,🛡️ CopperProxy (Основной)
 
-  # 5. БАЗА РОСКОМНАДЗОРА (Сайты, которые вы забыли добавить)
+  # 5. БАЗА РОСКОМНАДЗОРА
   - RULE-SET,rkn-ip-blocked,🛡️ CopperProxy (Основной)
 
-  # 6. ВСЁ ОСТАЛЬНОЕ В МИРЕ -> НАПРЯМУЮ
+  # 6. ВСЁ ОСТАЛЬНОЕ -> НАПРЯМУЮ
   - MATCH,DIRECT

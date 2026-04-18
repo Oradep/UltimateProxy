@@ -1,3 +1,6 @@
+#!name=📱 LTE (Белый список)
+#!desc=Маршрутизация: Все сайты через прокси, кроме РФ
+
 # ================= ПЕРЕМЕННЫЕ =================
 x-variables:
   backup_sub: &backup_sub "https://raw.githubusercontent.com/igareck/vpn-configs-for-russia/refs/heads/main/Vless-Reality-White-Lists-Rus-Mobile.txt"
@@ -34,7 +37,7 @@ dns:
     "+.ru": "77.88.8.8"
     "+.рф": "77.88.8.8"
 
-# ================= ПРОВАЙДЕРЫ =================
+# ================= ПРОВАЙДЕРЫ ПРОКСИ =================
 proxy-providers:
   public-backup-subs:
     type: http
@@ -46,7 +49,7 @@ proxy-providers:
       expected-status: 204
       interval: 120
 
-# ================= ГРУППЫ =================
+# ================= ГРУППЫ ПРОКСИ =================
 proxy-groups:
   - name: "🚀 CopperProxy (Авто)"
     type: url-test
@@ -58,7 +61,7 @@ proxy-groups:
     interval: 60
     tolerance: 100
 
-# ================= СПИСКИ (БЕЛЫЙ) =================
+# ================= ПРАВИЛА (БЕЛЫЙ СПИСОК) =================
 rule-providers:
   personal-whitelist:
     type: http
@@ -75,5 +78,5 @@ rules:
   # 1. РУ-Сайты (Из вашего файла) -> НАПРЯМУЮ
   - RULE-SET,personal-whitelist,DIRECT
 
-  # 2. ВСЁ ОСТАЛЬНОЕ В МИРЕ -> В COPPER PROXY
+  # 2. ВСЁ ОСТАЛЬНОЕ В МИРЕ -> В ПРОКСИ
   - MATCH,🚀 CopperProxy (Авто)
