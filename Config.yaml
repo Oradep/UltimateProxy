@@ -13,7 +13,16 @@ allow-lan: false
 mode: rule
 log-level: info
 ipv6: false
-udp: true  # <--- ВКЛЮЧЕНО ДЛЯ РАБОТЫ ГОЛОСА В DISCORD, WHATSAPP, ТЕЛЕГРАМЕ
+udp: true
+
+# Включаем виртуальный сетевой адаптер (TUN). Без него Discord App уходит мимо VPN!
+tun:
+  enable: true
+  stack: mixed
+  dns-hijack:
+    - "any:53"
+  auto-route: true
+  auto-detect-interface: true
 
 # ================= СНИФФЕР И DNS =================
 sniffer:
@@ -34,16 +43,23 @@ dns:
   fake-ip-filter:
     - '+.lan'
     - '+.local'
-    - '+.ru'          # Не подменять IP для ру-сегмента
-    - '+.discord.gg'  # Исключение для Дискорда (чтобы не ломались войсы)
-    - '+.discord.com' # Исключение для Дискорда
+    - '+.ru'
+    - '+.рф'
+    
+  # Для всего мира используем независимые DNS (Google и Cloudflare)
   default-nameserver:
-    - 77.88.8.8
+    - 8.8.8.8
+    - 1.1.1.1
   nameserver:
-    - 77.88.8.8
+    - 8.8.8.8
+    - 1.1.1.1
+    
+  # А вот для РУ-сегмента и Госуслуг оставляем Яндекс, чтобы всё работало быстро
   nameserver-policy:
     "+.ru": "77.88.8.8"
     "+.рф": "77.88.8.8"
+    "+.su": "77.88.8.8"
+
 
 # ================= 1. ПОДПИСКИ (ПРОВАЙДЕРЫ ПРОКСИ) =================
 proxy-providers:
@@ -125,22 +141,13 @@ rules:
   - GEOIP,lan,DIRECT,no-resolve
   - GEOSITE,private,DIRECT
 
-  # 2. РУССКИЕ САЙТЫ (Белый список) - ВСЕГДА НАПРЯМУЮ в любом состоянии
+  # 2. РУССКИЕ САЙТЫ (Белый список) - ВСЕГДА НАПРЯМУЮ
   - RULE-SET,sanmai-whitelist,DIRECT
 
-  # 3. Служебные домены (чтобы VPN не зависал)
-  - DOMAIN-KEYWORD,github,Smart-Routing
-  - DOMAIN-KEYWORD,ipwho,Smart-Routing
-  - DOMAIN-KEYWORD,ipinfo,Smart-Routing
-  - DOMAIN-KEYWORD,ipapi,Smart-Routing
-
-  # 4. ЗАБЛОКИРОВАННЫЕ САЙТЫ И ИИ (Черный список) - ВСЕГДА ЧЕРЕЗ VPN
-  - GEOSITE,telegram,Smart-Routing
-  - GEOIP,telegram,Smart-Routing
-  - DOMAIN-KEYWORD,google,Smart-Routing
-  - DOMAIN-SUFFIX,gstatic.com,Smart-Routing
-  - DOMAIN-SUFFIX,googleapis.com,Smart-Routing
-  - DOMAIN-SUFFIX,ggpht.com,Smart-Routing
+  # 3. Запрет UDP/QUIC (Остается здесь, так как действие REJECT, а не VPN)
+  - AND,((NETWORK,UDP),(DEST-PORT,443),(GEOSITE,youtube,google,meta,instagram)),REJECT
+  
+  # 4. ЗАБЛОКИРОВАННЫЕ САЙТЫ, СОЦСЕТИ, ИИ И СЛУЖЕБНЫЕ ДОМЕНЫ (Всё перенесено в черный список)
   - RULE-SET,sanmai-blacklist,Smart-Routing
 
   # 5. ВСЁ ОСТАЛЬНОЕ -> ИДЁТ В АВТО-ПЕРЕКЛЮЧАТЕЛЬ

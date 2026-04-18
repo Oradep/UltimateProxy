@@ -173,3 +173,32 @@ payload:
   - 'DOMAIN-SUFFIX,unian.net'
   - 'DOMAIN-SUFFIX,republic.ru'
   - 'DOMAIN-SUFFIX,colta.ru'
+
+  # === СЛУЖЕБНЫЕ ДОМЕНЫ ===
+  - DOMAIN-KEYWORD,github
+  - DOMAIN-KEYWORD,ipwho
+  - DOMAIN-KEYWORD,ipinfo
+  - DOMAIN-KEYWORD,ipapi
+
+  # === БАЗЫ GEOSITE (Соцсети, мессенджеры) ===
+  - GEOSITE,discord
+  - GEOSITE,meta
+  - GEOSITE,instagram
+  - GEOSITE,twitter
+  - GEOSITE,tiktok
+  - GEOSITE,telegram
+
+  # === БАЗЫ GEOIP (Прямые IP-адреса) ===
+  - GEOIP,telegram
+  - GEOIP,meta
+  - GEOIP,twitter
+
+  # === БАЗЫ IP-ASN (Голосовые серверы Discord) ===
+  - IP-ASN,396982 # Google Cloud
+  - IP-ASN,7018   # AT&T
+
+  # === GOOGLE И ЗАБЛОКИРОВАННОЕ ===
+  - DOMAIN-KEYWORD,google
+  - DOMAIN-SUFFIX,gstatic.com
+  - DOMAIN-SUFFIX,googleapis.com
+  - DOMAIN-SUFFIX,ggpht.com
