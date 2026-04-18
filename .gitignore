@@ -2,3 +2,4 @@ CopperProxy.yaml
 convert.py
 blacklist.txt
 whitelist.txt
+domainparser/
