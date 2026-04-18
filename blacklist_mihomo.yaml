@@ -173,8 +173,6 @@ payload:
   - 'DOMAIN-SUFFIX,unian.net'
   - 'DOMAIN-SUFFIX,republic.ru'
   - 'DOMAIN-SUFFIX,colta.ru'
-  # === GOOGLE И ЗАБЛОКИРОВАННОЕ ===
-  - DOMAIN-KEYWORD,google
-  - DOMAIN-SUFFIX,gstatic.com
-  - DOMAIN-SUFFIX,googleapis.com
-  - DOMAIN-SUFFIX,ggpht.com
+  - 'DOMAIN-SUFFIX,gstatic.com'
+  - 'DOMAIN-SUFFIX,googleapis.com'
+  - 'DOMAIN-SUFFIX,ggpht.com'
