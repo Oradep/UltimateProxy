@@ -51,7 +51,7 @@ proxy-providers:
 
 # ================= ГРУППЫ ПРОКСИ =================
 proxy-groups:
-  - name: "🚀 CopperProxy (Авто)"
+  - name: "🚀 CopperProxy (Белые списки)"
     type: url-test
     icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/rocket.svg"
     use:
