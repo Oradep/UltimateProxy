@@ -1,3 +1,4 @@
 CopperProxy.yaml
-convertBL.py
+convert.py
 blacklist.txt
+whitelist.txt
