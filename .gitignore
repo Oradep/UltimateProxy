@@ -5,3 +5,4 @@ whitelist.txt
 domainparser/
 whitelist_LTE.txt
 whitelist_WIFI.txt
+whitelist_WIFI_TIKTOK.txt
