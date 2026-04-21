@@ -1,0 +1,61 @@
+#!name=Прокси (Белый список)
+#!desc=Всё через прокси, кроме сайтов из белого списка
+
+port: 7890
+allow-lan: false
+mode: rule
+log-level: warning
+ipv6: false
+
+tun:
+  enable: true
+  stack: mixed
+  auto-route: true
+  dns-hijack: ["any:53"]
+
+dns:
+  enable: true
+  listen: 0.0.0.0:1053
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  nameserver:
+    - 1.1.1.1
+    - 8.8.8.8
+
+proxy-providers:
+  my-servers:
+    type: http
+    url: "ВСТАВЬТЕ_СЮДА_ССЫЛКУ_НА_ВАШУ_ПОДПИСКУ_С_СЕРВЕРАМИ"
+    interval: 86400
+    health-check:
+      enable: true
+      url: http://cp.cloudflare.com/generate_204
+      interval: 300 # Проверка пинга раз в 5 минут (бережет батарею)
+
+proxy-groups:
+  - name: "Auto"
+    type: url-test
+    use:
+      - my-servers
+    url: http://cp.cloudflare.com/generate_204
+    interval: 300
+    tolerance: 50 # Не прыгать между серверами, если разница в пинге меньше 50мс
+
+rule-providers:
+  whitelist:
+    type: http
+    behavior: classical
+    format: yaml   
+    url: "https://raw.githubusercontent.com/Oradep/CopperProxy/refs/heads/main/whitelist_mihomo.yaml"
+    interval: 86400 # Обновление списка раз в сутки
+
+rules:
+  # 1. Локальная сеть напрямую
+  - GEOIP,lan,DIRECT,no-resolve
+  - GEOSITE,private,DIRECT
+
+  # 2. Сайты из вашего Github -> НАПРЯМУЮ
+  - RULE-SET,whitelist,DIRECT
+
+  # 3. ВСЁ ОСТАЛЬНОЕ -> В ПРОКСИ (Автоматический выбор сервера)
+  - MATCH,Auto

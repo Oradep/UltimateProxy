@@ -3,3 +3,5 @@ convert.py
 blacklist.txt
 whitelist.txt
 domainparser/
+whitelist_LTE.txt
+whitelist_WIFI.txt
